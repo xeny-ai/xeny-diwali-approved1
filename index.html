@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xeny | Technotask Diwali</title>
+<meta name="description" content="Meet Xeny, Technotask's AI Voice Agent. Say hello in any language.">
+<style>
+  :root {
+    --bg0: #12061f;
+    --bg1: #2a0b3a;
+    --bg2: #4a1245;
+    --gold: #f7b733;
+    --gold-soft: #ffd98a;
+    --saffron: #ff7a18;
+    --rose: #ff4f7b;
+    --text: #fff7e8;
+    --muted: #d9c9e8;
+    --glass: rgba(255,255,255,.07);
+    --line: rgba(255,217,138,.28);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(900px 500px at 15% 0%, rgba(255,79,123,.22), transparent 60%),
+      radial-gradient(900px 600px at 90% 10%, rgba(247,183,51,.18), transparent 60%),
+      radial-gradient(1000px 700px at 50% 110%, rgba(255,122,24,.22), transparent 60%),
+      linear-gradient(170deg, var(--bg0), var(--bg1) 55%, var(--bg2));
+    overflow-x: hidden;
+    line-height: 1.5;
+  }
+
+  /* hanging string lights */
+  .lights { position: fixed; top: 0; left: 0; right: 0; height: 140px; z-index: 2; pointer-events: none; }
+  .lights svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .lights .wire { fill: none; stroke: #5a3d1c; stroke-width: 1.7; stroke-linejoin: round; }
+  .lights .wire-hi { fill: none; stroke: rgba(255,217,138,.3); stroke-width: .6; }
+  .lights .halo { animation: flicker 3.2s infinite ease-in-out; animation-delay: var(--d, 0s); }
+  @keyframes flicker { 0%,100% { opacity: .7 } 50% { opacity: 1 } }
+  @media (prefers-reduced-motion: reduce) { .lights .halo { animation: none; } }
+
+  /* floating embers */
+  .embers { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .embers i {
+    position: absolute; bottom: -20px; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--gold); box-shadow: 0 0 12px 3px rgba(247,183,51,.7);
+    opacity: 0; animation: rise 12s infinite linear;
+  }
+  .embers i:nth-child(1){ left: 6%;  animation-delay: 0s;  animation-duration: 13s }
+  .embers i:nth-child(2){ left: 18%; animation-delay: 3s;  animation-duration: 10s; width:4px; height:4px }
+  .embers i:nth-child(3){ left: 32%; animation-delay: 6s;  animation-duration: 14s }
+  .embers i:nth-child(4){ left: 47%; animation-delay: 1.5s;animation-duration: 11s; width:3px; height:3px }
+  .embers i:nth-child(5){ left: 61%; animation-delay: 4.5s;animation-duration: 15s }
+  .embers i:nth-child(6){ left: 74%; animation-delay: 2s;  animation-duration: 12s; width:4px; height:4px }
+  .embers i:nth-child(7){ left: 86%; animation-delay: 7s;  animation-duration: 13s }
+  .embers i:nth-child(8){ left: 94%; animation-delay: 5s;  animation-duration: 10s; width:3px; height:3px }
+  @keyframes rise {
+    0%   { transform: translateY(0) translateX(0); opacity: 0 }
+    10%  { opacity: .9 }
+    90%  { opacity: .6 }
+    100% { transform: translateY(-105vh) translateX(26px); opacity: 0 }
+  }
+
+  main {
+    position: relative; z-index: 1; min-height: 100vh;
+    max-width: 760px; margin: 0 auto; padding: 84px 22px 36px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+  }
+
+  .brand {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 18px; border-radius: 999px;
+    background: var(--glass); border: 1px solid var(--line);
+    font-size: 12.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--gold-soft);
+    backdrop-filter: blur(6px);
+  }
+  .brand .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+
+  h1 {
+    margin-top: 26px; font-size: clamp(34px, 8vw, 58px); line-height: 1.06; font-weight: 800; letter-spacing: -.01em;
+  }
+  h1 .gold {
+    display: inline-block;
+    background: linear-gradient(90deg, var(--gold), var(--saffron), var(--rose));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { margin-top: 16px; max-width: 520px; color: var(--muted); font-size: clamp(16px, 4vw, 19px); }
+
+  /* stage with orb */
+  .stage { position: relative; width: 340px; height: 340px; margin: 34px auto 6px; display: grid; place-items: center; }
+  .mandala { position: absolute; inset: 0; width: 100%; height: 100%; animation: spin 40s linear infinite; opacity: .9; }
+  @keyframes spin { to { transform: rotate(360deg) } }
+  .ring { position: absolute; border-radius: 50%; border: 1.5px solid rgba(255,217,138,.5); opacity: 0; }
+  .ring.r1 { width: 210px; height: 210px; }
+  .ring.r2 { width: 210px; height: 210px; }
+  .stage:not(.listening):not(.speaking) .ring.r1 { animation: ripple 3.4s infinite ease-out; }
+  .stage.listening .ring.r1 { animation: ripple 3s infinite ease-out; }
+  .stage.speaking  .ring.r1 { animation: ripple 1.4s infinite ease-out; }
+  .stage.speaking  .ring.r2 { animation: ripple 1.4s .5s infinite ease-out; }
+  @keyframes ripple { 0% { transform: scale(.9); opacity: .8 } 100% { transform: scale(1.75); opacity: 0 } }
+
+  .orb {
+    position: relative; width: 190px; height: 190px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 28%, #fff6cf 0%, #ffd34d 28%, var(--saffron) 68%, #d6460c 100%);
+    box-shadow: 0 0 60px rgba(255,160,40,.65), inset -10px -14px 30px rgba(120,30,0,.35);
+    display: grid; place-items: center; transition: transform .25s ease;
+  }
+  .orb.listening { animation: breathe 2.4s infinite ease-in-out; }
+  .orb.speaking  { animation: talk .8s infinite ease-in-out; }
+  @keyframes breathe { 0%,100% { transform: scale(1) } 50% { transform: scale(1.06) } }
+  @keyframes talk { 0%,100% { transform: scale(1) } 50% { transform: scale(1.12) } }
+
+  .orb { animation: breathe 3.2s infinite ease-in-out; }
+  .orb-btn {
+    position: absolute; left: 50%; top: 50%; width: 146px; height: 146px; margin: -73px 0 0 -73px;
+    border: 0; border-radius: 50%; cursor: pointer; color: #b93a06;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    background: linear-gradient(150deg, #ffffff 0%, #fff1cf 55%, #ffd98a 100%);
+    box-shadow: 0 10px 26px rgba(110,25,0,.45), inset 0 -5px 12px rgba(255,150,40,.45), 0 0 0 6px rgba(255,255,255,.28);
+    font-family: "Segoe UI", system-ui, sans-serif; text-align: center; overflow: visible;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .orb-btn::before {
+    content: ""; position: absolute; inset: -6px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.85); opacity: 0; animation: halo 2s infinite ease-out; pointer-events: none;
+  }
+  @keyframes halo { 0% { transform: scale(1); opacity: .9 } 100% { transform: scale(1.5); opacity: 0 } }
+  .orb-btn::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+    background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.75) 50%, transparent 65%);
+    background-size: 250% 100%; background-position: 160% 0; animation: shine 3.2s infinite ease-in-out;
+  }
+  @keyframes shine { 0%, 55% { background-position: 160% 0 } 100% { background-position: -60% 0 } }
+  .orb-btn:hover { transform: scale(1.07); box-shadow: 0 14px 34px rgba(110,25,0,.55), inset 0 -5px 12px rgba(255,150,40,.45), 0 0 0 8px rgba(255,255,255,.35); }
+  .orb-btn:active { transform: scale(.97); }
+  .orb-btn:focus-visible { outline: 3px solid #fff; outline-offset: 6px; }
+  .orb-btn[disabled] { cursor: wait; transform: none; }
+  .orb-btn[disabled]::before, .orb-btn[disabled]::after { animation: none; opacity: 0; }
+  .orb-btn[hidden] { display: none; }
+  .orb-btn svg { stroke: #e4570f; margin-bottom: 4px; animation: bob 1.8s infinite ease-in-out; }
+  @keyframes bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
+  .orb-btn #startLabel { display: flex; flex-direction: column; align-items: center; line-height: 1.1; font-size: 12px; font-weight: 700; color: #7a2a05; }
+  .orb-btn #startLabel b { font-size: 18px; font-weight: 800; letter-spacing: .01em; color: #c2410c; }
+  .orb-btn #startLabel small { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: #8a4a1a; }
+  .bars { display: flex; align-items: center; gap: 5px; height: 44px; opacity: 0; transition: opacity .3s; }
+  .stage.listening .bars, .stage.speaking .bars { opacity: 1; }
+  .bars span {
+    width: 6px; height: 10px; border-radius: 4px; background: rgba(60,15,0,.75);
+    transition: height .2s;
+  }
+  .stage.speaking .bars span { animation: bar .9s infinite ease-in-out; }
+  .stage.speaking .bars span:nth-child(1) { animation-delay: 0s }
+  .stage.speaking .bars span:nth-child(2) { animation-delay: .12s }
+  .stage.speaking .bars span:nth-child(3) { animation-delay: .24s }
+  .stage.speaking .bars span:nth-child(4) { animation-delay: .36s }
+  .stage.speaking .bars span:nth-child(5) { animation-delay: .48s }
+  @keyframes bar { 0%,100% { height: 10px } 50% { height: 40px } }
+  .stage.listening .bars span { height: 14px; }
+
+  .controls { margin-top: 18px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .cta {
+    border: 0; cursor: pointer; padding: 17px 40px; font-size: 18px; font-weight: 700; color: #2a1200;
+    background: linear-gradient(90deg, var(--gold), var(--saffron));
+    border-radius: 999px; box-shadow: 0 12px 34px rgba(255,122,24,.4), inset 0 1px 0 rgba(255,255,255,.5);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .cta:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(255,122,24,.55), inset 0 1px 0 rgba(255,255,255,.5); }
+  .cta:focus-visible, .end:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .cta[disabled] { opacity: .75; cursor: wait; transform: none; }
+  .end {
+    padding: 13px 30px; cursor: pointer; font-size: 15.5px; font-weight: 600; color: var(--text);
+    background: var(--glass); border: 1px solid var(--line); border-radius: 999px; backdrop-filter: blur(6px);
+  }
+  .end[hidden], .cta[hidden] { display: none; }
+  .status { min-height: 24px; max-width: 460px; color: var(--muted); font-size: 15px; }
+
+  .langs { margin-top: 26px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 560px; }
+  .langs span {
+    padding: 7px 14px; font-size: 13.5px; color: var(--gold-soft);
+    background: var(--glass); border: 1px solid var(--line); border-radius: 999px;
+  }
+  .langs-title { margin-top: 30px; font-size: 12.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+
+  footer { margin-top: auto; padding-top: 38px; font-size: 13.5px; color: var(--muted); }
+  footer b { color: var(--gold-soft); font-weight: 600; }
+
+  @media (max-width: 480px) {
+    main { padding-top: 78px; }
+    .stage { width: 300px; height: 300px; }
+    .orb { width: 168px; height: 168px; }
+    .orb-btn { width: 130px; height: 130px; margin: -65px 0 0 -65px; }
+    .orb-btn #startLabel b { font-size: 16px; }
+    .orb-btn #startLabel small { font-size: 10px; }
+    .orb-btn svg { width: 30px; height: 30px; }
+    .ring.r1, .ring.r2 { width: 186px; height: 186px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mandala, .embers i, .bulb, .orb, .ring, .orb-btn svg, .orb-btn::before, .orb-btn::after { animation: none !important; }
+    .stage.speaking .bars span { animation: none; height: 24px; }
+  }
+
+  .logo { background: #fff; padding: 8px 18px; border-radius: 16px; box-shadow: 0 8px 26px rgba(0,0,0,.35), 0 0 0 1px rgba(255,217,138,.5); }
+  .logo img { display: block; height: 44px; width: auto; }
+  main { min-height: 100vh; min-height: 100svh; justify-content: center; padding: 76px 20px 22px !important; }
+  h1 { margin-top: 18px !important; font-size: clamp(26px, 6.2vw, 42px) !important; }
+  .stage { width: 300px !important; height: 300px !important; margin: 14px auto 0 !important; }
+  .orb { width: 172px !important; height: 172px !important; }
+  .orb-btn { width: 134px !important; height: 134px !important; margin: -67px 0 0 -67px !important; }
+  .ring.r1, .ring.r2 { width: 192px !important; height: 192px !important; }
+  .controls { margin-top: 6px !important; gap: 8px !important; }
+  .status { min-height: 20px; font-size: 14px !important; }
+  .langs { margin-top: 12px !important; gap: 6px !important; }
+  .langs span { padding: 5px 11px !important; font-size: 12.5px !important; }
+  footer { padding-top: 14px !important; font-size: 13px !important; }
+  @media (max-width: 480px) {
+    .logo img { height: 38px; }
+    main { padding-top: 70px !important; }
+    .stage { width: 262px !important; height: 262px !important; }
+    .orb { width: 152px !important; height: 152px !important; }
+    .orb-btn { width: 120px !important; height: 120px !important; margin: -60px 0 0 -60px !important; }
+    .ring.r1, .ring.r2 { width: 170px !important; height: 170px !important; }
+    .orb-btn #startLabel b { font-size: 15px !important; }
+    .orb-btn #startLabel small { font-size: 9.5px !important; }
+    .orb-btn svg { width: 28px !important; height: 28px !important; }
+  }
+
+  .orb-btn #startLabel b { font-size: 13px !important; font-weight: 700 !important; }
+  .orb-btn #startLabel small { font-size: 8.5px !important; letter-spacing: .1em !important; }
+  .orb-btn svg { width: 26px !important; height: 26px !important; }
+  @media (max-width: 480px) {
+    .orb-btn #startLabel b { font-size: 12px !important; }
+    .orb-btn #startLabel small { font-size: 8px !important; }
+    .orb-btn svg { width: 24px !important; height: 24px !important; }
+  }
+
+  .logo { display: flex !important; align-items: center; gap: 14px; }
+  .logo .sep { width: 1px; height: 30px; background: #e6dcc6; }
+  .logo .xeny-logo { height: 38px; width: auto; display: block; }
+  @media (max-width: 480px) {
+    .logo { gap: 10px; padding: 7px 12px !important; }
+    .logo img { height: 30px !important; }
+    .logo .xeny-logo { height: 30px !important; }
+    .logo .sep { height: 24px; }
+  }
+
+  /* ---- fit everything on ONE screen, any phone or laptop ---- */
+  :root { --s: min(300px, 36vh, 80vw); }
+  @supports (height: 100dvh) { :root { --s: min(300px, 36dvh, 80vw); } }
+  html, body { height: 100%; }
+  main {
+    height: 100vh !important; min-height: 0 !important; overflow: hidden;
+    padding: 58px 16px 10px !important; justify-content: space-evenly !important;
+  }
+  @supports (height: 100dvh) { main { height: 100dvh !important; } }
+  .logo { padding: 6px 12px !important; border-radius: 14px !important; }
+  .logo img, .logo .xeny-logo { height: clamp(26px, 4.6vh, 38px) !important; }
+  .logo .sep { height: clamp(20px, 3.6vh, 28px) !important; }
+  h1 { margin-top: 0 !important; font-size: clamp(22px, 5.6vw, 38px) !important; line-height: 1.08 !important; }
+  .stage { width: var(--s) !important; height: var(--s) !important; margin: 0 auto !important; }
+  .orb { width: calc(var(--s) * .57) !important; height: calc(var(--s) * .57) !important; }
+  .orb-btn { width: calc(var(--s) * .45) !important; height: calc(var(--s) * .45) !important; margin: calc(var(--s) * -.225) 0 0 calc(var(--s) * -.225) !important; }
+  .ring.r1, .ring.r2 { width: calc(var(--s) * .64) !important; height: calc(var(--s) * .64) !important; }
+  .orb-btn svg { width: calc(var(--s) * .09) !important; height: calc(var(--s) * .09) !important; min-width: 20px; min-height: 20px; margin-bottom: 2px !important; }
+  .orb-btn #startLabel b { font-size: clamp(11px, calc(var(--s) * .043), 14px) !important; }
+  .orb-btn #startLabel small { font-size: clamp(7.5px, calc(var(--s) * .029), 9.5px) !important; }
+  .controls { margin-top: 0 !important; gap: 6px !important; }
+  .status { min-height: 18px !important; font-size: 13.5px !important; }
+  .langs { margin-top: 0 !important; }
+  footer { padding-top: 0 !important; margin-top: 0 !important; }
+  @media (max-height: 640px) { .langs { display: none !important; } }
+  @media (max-height: 540px) { footer { display: none !important; } h1 { font-size: 20px !important; } }
+
+  .xeny-word {
+    font-weight: 900; letter-spacing: .16em; font-size: clamp(18px, 3.6vh, 26px); line-height: 1;
+    background: linear-gradient(90deg, #ff7a18, #d6249f); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tag { color: var(--muted); font-size: clamp(13px, 3.8vw, 16px); margin: 0; }
+  .tag b { color: var(--gold-soft); font-weight: 700; }
+
+  /* talk button: a glossy Diwali-gold glass sphere inside a thin ring with a beaded sound wave */
+  .stage .aura {
+    position: absolute; inset: 12%; border-radius: 50%; pointer-events: none;
+    background:
+      radial-gradient(circle at 12% 62%, rgba(255,140,30,.6), transparent 55%),
+      radial-gradient(circle at 88% 28%, rgba(255,79,123,.55), transparent 55%);
+    filter: blur(26px); animation: spin 24s linear infinite;
+  }
+  .ringwave { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .orb {
+    width: calc(var(--s) * .6) !important; height: calc(var(--s) * .6) !important; overflow: hidden;
+    background:
+      radial-gradient(circle at 80% 30%, rgba(255,95,120,.9), transparent 55%),
+      radial-gradient(circle at 10% 62%, rgba(255,150,30,.95), transparent 45%),
+      radial-gradient(circle at 50% 100%, rgba(150,35,10,.9), transparent 60%),
+      linear-gradient(165deg, #ffe08a 0%, #ffb733 40%, #ff7a18 70%, #8a2a0c 100%);
+    box-shadow: -18px 8px 46px rgba(255,140,30,.45), 18px -12px 46px rgba(255,79,123,.4),
+      inset 0 -16px 36px rgba(90,20,0,.5), inset 0 10px 26px rgba(255,255,255,.2);
+  }
+  .orb::before {
+    content: ""; position: absolute; inset: 7%; border-radius: 50%; z-index: 1; pointer-events: none;
+    border: 1px solid rgba(255,255,255,.22);
+    background: radial-gradient(circle at 50% 6%, rgba(255,255,255,.5), transparent 36%);
+  }
+  .orb::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 1; pointer-events: none;
+    box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.2), inset 8px 0 20px rgba(255,230,160,.45);
+  }
+  .swirl { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; }
+  .swirl i { position: absolute; left: -50%; width: 200%; height: 200%; border-radius: 42%; animation: spin 16s linear infinite; }
+  .swirl i:nth-child(1) { top: 52%; background: rgba(170,45,10,.5); }
+  .swirl i:nth-child(2) { top: 62%; background: rgba(214,70,12,.45); border-radius: 46%; animation-duration: 11s; animation-direction: reverse; }
+  .swirl i:nth-child(3) { top: -158%; background: rgba(255,240,190,.35); border-radius: 44%; animation-duration: 19s; }
+  .stage.speaking .swirl i { animation-duration: 5s; }
+  .stage.speaking .aura { filter: blur(22px) brightness(1.3); }
+
+  .orb .orb-btn {
+    left: 0; top: 0; width: 100% !important; height: 100% !important; margin: 0 !important; z-index: 2;
+    background: transparent; box-shadow: none; color: #fff; text-shadow: 0 1px 8px rgba(110,30,0,.6);
+  }
+  .orb .orb-btn::before, .orb .orb-btn::after { display: none; }
+  .orb .orb-btn:hover { transform: none; box-shadow: none; }
+  .orb:hover { filter: brightness(1.08) saturate(1.1); }
+  .orb .orb-btn:focus-visible { outline-offset: -8px; }
+  .orb .orb-btn svg { stroke: #fff; filter: drop-shadow(0 1px 6px rgba(110,30,0,.55)); }
+  .orb .orb-btn #startLabel { color: #fff; }
+  .orb .orb-btn #startLabel b { color: #fff; font-size: clamp(12px, calc(var(--s) * .05), 16px) !important; }
+  .orb .orb-btn #startLabel small { color: rgba(255,255,255,.85); font-size: clamp(8px, calc(var(--s) * .032), 10.5px) !important; }
+  @media (prefers-reduced-motion: reduce) { .stage .aura, .swirl i { animation: none; } }
+
+  /* logos sit straight on the background, no white card */
+  .logo { background: none !important; box-shadow: none !important; padding: 0 !important; }
+  .logo svg.xeny-logo { width: auto; aspect-ratio: 1171.15 / 405.13; overflow: visible; }
+
+  /* the Xeny artwork has empty space above and below, so it is set taller to look the same size as Technotask */
+  main .logo img { height: clamp(22px, 4vh, 34px) !important; }
+  main .logo svg.xeny-logo { height: clamp(30px, 5.4vh, 46px) !important; transform: translateY(9%); }
+
+  /* night-sky background: deep indigo at the top warming to plum, a saffron glow rising from the bottom,
+     a soft gold light behind the talk button, faint twinkling stars and slow drifting bokeh */
+  body {
+    background:
+      radial-gradient(55% 34% at 50% 54%, rgba(255,170,60,.16), transparent 70%),
+      radial-gradient(95% 42% at 50% 108%, rgba(255,122,24,.4), rgba(255,79,123,.12) 50%, transparent 78%),
+      radial-gradient(70% 40% at 0% 0%, rgba(80,60,200,.22), transparent 70%),
+      radial-gradient(70% 40% at 100% 0%, rgba(170,40,140,.2), transparent 70%),
+      linear-gradient(180deg, #0a0717 0%, #170a2b 40%, #2a0d33 72%, #3d1230 100%);
+  }
+  .stars, .stars::after {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 40%, transparent 78%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 40%, transparent 78%);
+  }
+  .stars {
+    background-image:
+      radial-gradient(1.2px 1.2px at 20px 30px, #fff, transparent),
+      radial-gradient(1px 1px at 120px 90px, #ffe9b8, transparent),
+      radial-gradient(1.4px 1.4px at 70px 150px, #fff, transparent),
+      radial-gradient(1px 1px at 190px 40px, #fff, transparent),
+      radial-gradient(1.6px 1.6px at 240px 170px, #fff4d6, transparent);
+    background-size: 170px 190px, 230px 210px, 260px 240px, 310px 280px, 360px 330px;
+    opacity: .75; animation: twinkle 4.5s ease-in-out infinite alternate;
+  }
+  .stars::after {
+    content: "";
+    background-image:
+      radial-gradient(1px 1px at 50px 60px, #fff, transparent),
+      radial-gradient(1.3px 1.3px at 150px 130px, #ffe9b8, transparent),
+      radial-gradient(1px 1px at 230px 20px, #fff, transparent);
+    background-size: 200px 220px, 290px 250px, 340px 300px;
+    animation: twinkle 6s 2s ease-in-out infinite alternate-reverse;
+  }
+  @keyframes twinkle { from { opacity: .35 } to { opacity: 1 } }
+  .bokeh { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .bokeh i {
+    position: absolute; border-radius: 50%; filter: blur(3px);
+    background: radial-gradient(circle, rgba(255,214,140,.3), rgba(255,170,60,.1) 55%, transparent 70%);
+    animation: drift 16s ease-in-out infinite alternate;
+  }
+  .bokeh i:nth-child(1) { left: 4%;  top: 58%; width: 110px; height: 110px; }
+  .bokeh i:nth-child(2) { left: 84%; top: 46%; width: 80px;  height: 80px;  animation-delay: -4s; }
+  .bokeh i:nth-child(3) { left: 12%; top: 30%; width: 50px;  height: 50px;  animation-delay: -8s; }
+  .bokeh i:nth-child(4) { left: 74%; top: 72%; width: 130px; height: 130px; animation-delay: -2s; }
+  .bokeh i:nth-child(5) { left: 90%; top: 22%; width: 44px;  height: 44px;  animation-delay: -11s; }
+  .bokeh i:nth-child(6) { left: 26%; top: 82%; width: 70px;  height: 70px;  animation-delay: -6s; }
+  .bokeh i:nth-child(7) { left: 58%; top: 88%; width: 56px;  height: 56px;  animation-delay: -13s; }
+  @keyframes drift { from { transform: translate(0, 0) } to { transform: translate(18px, -28px) } }
+  @media (prefers-reduced-motion: reduce) { .stars, .stars::after, .bokeh i { animation: none; } }
+
+  /* firecrackers bursting in the background */
+  .fireworks { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
+  .fireworks[hidden] { display: none; }
+
+  /* ---- claim form: glass card on the right (laptop) / slide-up sheet (phone) ---- */
+  .claim { position: fixed; inset: 0; z-index: 50; display: none; align-items: flex-end; justify-content: center;
+           background: rgba(10,5,20,.62); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  .claim.open { display: flex; }
+  .claim-card {
+    position: relative; width: 100%; max-width: 480px; max-height: 92vh; max-height: 92dvh; overflow-y: auto;
+    padding: 24px 22px calc(20px + env(safe-area-inset-bottom)); text-align: left; color: var(--text);
+    background: linear-gradient(180deg, rgba(34,14,56,.96), rgba(22,9,38,.97));
+    border: 1px solid var(--line); border-bottom: 0; border-radius: 22px 22px 0 0;
+    box-shadow: 0 -20px 60px rgba(0,0,0,.5);
+  }
+  .claim-card h2 { font-size: 21px; font-weight: 800; letter-spacing: -.01em; color: var(--gold-soft); padding-right: 36px; }
+  .claim-card .sub { margin-top: 4px; font-size: 13.5px; color: var(--muted); }
+  .claim-card label { display: block; margin: 13px 0 5px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .claim-card input[type=text], .claim-card input[type=email], .claim-card input[type=tel] {
+    width: 100%; padding: 11px 13px; font-size: 16px; color: var(--text);
+    background: rgba(255,255,255,.08); border: 1px solid var(--line); border-radius: 12px;
+    -webkit-appearance: none; appearance: none;
+  }
+  .claim-card input:focus { outline: 2px solid var(--gold); outline-offset: 0; border-color: transparent; background: rgba(255,255,255,.12); }
+  .claim-submit {
+    width: 100%; margin-top: 18px; border: 0; cursor: pointer; padding: 13px; font-size: 15px; font-weight: 700; color: #2a1200;
+    background: linear-gradient(90deg, var(--gold), var(--saffron)); border-radius: 999px;
+    box-shadow: 0 10px 26px rgba(255,122,24,.35), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .claim-submit:disabled { opacity: .7; cursor: wait; }
+  .claim-submit:focus-visible, .claim-open:focus-visible, .claim-close:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .claim-note { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: center; }
+  .claim-err { display: none; margin-top: 10px; font-size: 13.5px; color: #ffb4a8; text-align: center; }
+  .claim-thanks { display: none; text-align: center; padding: 26px 4px 14px; }
+  .claim-thanks h3 { font-size: 21px; color: var(--gold-soft); margin-bottom: 6px; }
+  .claim-thanks p { color: var(--muted); font-size: 14.5px; }
+  .claim .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .claim-close {
+    position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+    color: var(--text); font-size: 20px; line-height: 1; background: rgba(255,255,255,.08); border: 1px solid var(--line);
+  }
+  .claim-open {
+    margin: 2px auto 0; padding: 9px 20px; font-size: 13.5px; font-weight: 700; letter-spacing: .01em; cursor: pointer;
+    color: var(--gold-soft); background: rgba(255,255,255,.06); border: 1px solid rgba(255,217,138,.55); border-radius: 999px;
+  }
+  .claim-open:hover { background: rgba(255,217,138,.14); }
+
+  @media (min-width: 1000px) {
+    main { margin: 0 !important; max-width: none !important; width: calc(100% - 430px); }
+    .claim { inset: auto; right: 44px; top: 50%; transform: translateY(-50%); width: 340px; display: block; background: none;
+             -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .claim-card { max-width: none; max-height: calc(100vh - 150px); max-height: calc(100dvh - 150px); border: 1px solid var(--line); border-radius: 22px; padding: 24px 22px 18px;
+                  background: linear-gradient(180deg, rgba(34,14,56,.94), rgba(22,9,38,.95)); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+                  box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08); }
+    .claim-open, .claim-close { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- string lights -->
+<div class="lights" aria-hidden="true"><svg id="lightsSvg"></svg></div>
+<script>
+  // Fairy lights: three warm-white strands draped across the top and crossing each other, with round
+  // glowing globes on brass sockets and small unlit buds in between. Rebuilt to the screen size, and the
+  // strands sag less where they pass over the logo so no bulb ever covers it.
+  (() => {
+    const svg = document.getElementById("lightsSvg");
+    const H = 140;
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const defs = `<defs>
+      <radialGradient id="lampHalo"><stop offset="0" stop-color="#ffe3a3" stop-opacity=".8"/><stop offset=".35" stop-color="#ffc35a" stop-opacity=".35"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient>
+      <radialGradient id="lampGlass" cx=".42" cy=".38" r=".7"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#fff4cf"/><stop offset="1" stop-color="#ffcf6b"/></radialGradient>
+      <linearGradient id="lampSocket" x1="0" x2="1"><stop offset="0" stop-color="#7a5320"/><stop offset=".5" stop-color="#d9a956"/><stop offset="1" stop-color="#6b461a"/></linearGradient>
+    </defs>`;
+    // top: where the strand is pinned, span: width of one drape (fraction of screen), sag: deepest dip in px
+    const strands = [
+      { top: 4, span: .46, sag: 78, phase: .1 },
+      { top: 0, span: .3, sag: 52, phase: .62 },
+      { top: 8, span: .7, sag: 100, phase: .35 },
+    ];
+
+    function build() {
+      const w = innerWidth, narrow = w < 600, k = narrow ? .6 : 1, gap = narrow ? 28 : 36;
+      const logo = document.querySelector(".logo").getBoundingClientRect();
+      const logoMid = logo.left + logo.width / 2, reach = logo.width / 2 + 60;
+      let wires = "", halos = "", bulbs = "", n = 0;
+
+      for (const s of strands) {
+        // dip allowed above the logo, leaving room for the hanging bulbs
+        const room = Math.max(6, logo.top - s.top - 24);
+        const pts = [];
+        for (let x = -10; x <= w + 10; x += 4) {
+          const near = Math.exp(-Math.pow((x - logoMid) / reach, 6));
+          const depth = s.sag * k * (1 - near) + Math.min(s.sag * k, room) * near;
+          pts.push([x, s.top + depth * Math.abs(Math.sin(Math.PI * (x / w - s.phase) / s.span))]);
+        }
+        const d = "M" + pts.map(([x, y]) => `${x} ${y.toFixed(1)}`).join("L");
+        wires += `<path class="wire" d="${d}"/><path class="wire-hi" d="${d}"/>`;
+
+        let walked = 0, next = rand(0, gap);
+        for (let i = 1; i < pts.length; i++) {
+          walked += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+          if (walked < next) continue;
+          next += gap;
+          const [x, y] = pts[i], at = `translate(${x} ${y.toFixed(1)})`, delay = rand(0, 3.2).toFixed(2);
+          if (n++ % 2 === 0) {
+            halos += `<circle class="halo" style="--d:${delay}s" cx="${x}" cy="${(y + 11 * k + 3).toFixed(1)}" r="${narrow ? 17 : 24}" fill="url(#lampHalo)"/>`;
+            bulbs += `<g transform="${at} rotate(${rand(-12, 12).toFixed(0)}) scale(${narrow ? .8 : 1})">` +
+              `<rect x="-2.6" y="0" width="5.2" height="5" rx="1" fill="url(#lampSocket)"/>` +
+              `<circle cy="11" r="6.2" fill="url(#lampGlass)"/></g>`;
+          } else {
+            halos += `<circle class="halo" style="--d:${delay}s" cx="${x}" cy="${(y + 6).toFixed(1)}" r="${narrow ? 6 : 8}" fill="url(#lampHalo)"/>`;
+            bulbs += `<g transform="${at} rotate(${rand(-70, 70).toFixed(0)}) scale(${narrow ? .8 : 1})">` +
+              `<rect x="-1.6" y="0" width="3.2" height="3" rx=".6" fill="url(#lampSocket)"/>` +
+              `<path d="M0 3C2.6 5 2.2 10 0 12C-2.2 10-2.6 5 0 3Z" fill="#fff3d6" opacity=".85"/></g>`;
+          }
+        }
+      }
+      svg.setAttribute("viewBox", `0 0 ${w} ${H}`);
+      svg.innerHTML = defs + wires + halos + bulbs;
+    }
+
+    let queued = false;
+    const rebuild = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; build(); }); } };
+    addEventListener("DOMContentLoaded", build);
+    addEventListener("load", rebuild);
+    addEventListener("resize", rebuild);
+  })();
+</script>
+
+<div class="stars" aria-hidden="true"></div>
+<div class="bokeh" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<canvas class="fireworks" id="fireworks" aria-hidden="true"></canvas>
+
+<div class="embers" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+<main>
+  <div class="logo"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMiIgZGF0YS1uYW1lPSJMYXllciAyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDM3NS4zMiAyMTcxLjc0Ij4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmNscy0xIHsKICAgICAgICBmaWxsOiAjNmE0ZTlhOwogICAgICB9CgogICAgICAuY2xzLTIgewogICAgICAgIGZpbGw6ICNmZmY7CiAgICAgIH0KCiAgICAgIC5jbHMtMyB7CiAgICAgICAgZmlsbDogIzYzMjE0MTsKICAgICAgfQoKICAgICAgLmNscy00IHsKICAgICAgICBmaWxsOiAjN2ZiZGU3OwogICAgICB9CgogICAgICAuY2xzLTUgewogICAgICAgIGZpbGw6ICNhMjM0MmI7CiAgICAgIH0KCiAgICAgIC5jbHMtNiB7CiAgICAgICAgZmlsbDogI2I2Y2Y3NjsKICAgICAgfQoKICAgICAgLmNscy03IHsKICAgICAgICBmaWxsOiAjYjY2MjY5OwogICAgICB9CgogICAgICAuY2xzLTggewogICAgICAgIGZpbGw6ICMzMjNlOGI7CiAgICAgIH0KCiAgICAgIC5jbHMtOSB7CiAgICAgICAgZmlsbDogI2FjYmI0NzsKICAgICAgfQoKICAgICAgLmNscy0xMCB7CiAgICAgICAgZmlsbDogI2VmZTM2NzsKICAgICAgfQoKICAgICAgLmNscy0xMSB7CiAgICAgICAgZmlsbDogIzYyOWE2YTsKICAgICAgfQoKICAgICAgLmNscy0xMiB7CiAgICAgICAgZmlsbDogIzdlNDk5NTsKICAgICAgfQoKICAgICAgLmNscy0xMyB7CiAgICAgICAgZmlsbDogI2M3NmUzMDsKICAgICAgfQoKICAgICAgLmNscy0xNCB7CiAgICAgICAgZmlsbDogI2NmN2E1ZDsKICAgICAgfQoKICAgICAgLmNscy0xNSB7CiAgICAgICAgZmlsbDogIzU3MzM3YTsKICAgICAgfQoKICAgICAgLmNscy0xNiB7CiAgICAgICAgZmlsbDogI2M3OWVjNDsKICAgICAgfQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgPGcgaWQ9IlNMSURFXzEiIGRhdGEtbmFtZT0iU0xJREUgMSI+CiAgICA8Zz4KICAgICAgPGc+CiAgICAgICAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNOTI4OS40NSwyMTcxLjc0Yy0yMDkuMjMsMC00MTEuMzMtNTkuMjQtNTg1Ljk3LTE3MS41My0xNzQuNjQsMTEyLjMtMzc2Ljc0LDE3MS41My01ODUuOTcsMTcxLjUzcy00MTEuMzItNTkuMjQtNTg1Ljk3LTE3MS41M2MtMTc0LjY0LDExMi4zLTM3Ni43MywxNzEuNTMtNTg1Ljk2LDE3MS41M3MtNDExLjMzLTU5LjI0LTU4NS45Ny0xNzEuNTNjLTE3NC42NCwxMTIuMy0zNzYuNzMsMTcxLjUzLTU4NS45NiwxNzEuNTNzLTQxMS4zMy01OS4yNC01ODUuOTctMTcxLjUzYy0xNzQuNjQsMTEyLjMtMzc2LjczLDE3MS41My01ODUuOTcsMTcxLjUzcy00MTEuMzMtNTkuMjQtNTg1Ljk3LTE3MS41M2MtMTc0LjY0LDExMi4zLTM3Ni43MywxNzEuNTMtNTg1Ljk3LDE3MS41M3MtNDExLjMzLTU5LjI0LTU4NS45Ny0xNzEuNTNjLTE3NC42NCwxMTIuMy0zNzYuNzQsMTcxLjUzLTU4NS45NywxNzEuNTNzLTQxMS4zMi01OS4yNC01ODUuOTctMTcxLjUzYy0xNzQuNjQsMTEyLjI5LTM3Ni43NCwxNzEuNTMtNTg1Ljk3LDE3MS41My0xNDYuNTUsMC0yODguNzctMjguNzItNDIyLjctODUuMzctMTI5LjMxLTU0LjY5LTI0NS40My0xMzIuOTgtMzQ1LjEzLTIzMi42Ny05OS42OS05OS42OS0xNzcuOTgtMjE1LjgxLTIzMi42Ny0zNDUuMTNDMjguNzMsMTM3NC42NCwwLDEyMzIuNDIsMCwxMDg1Ljg3czI4LjczLTI4OC43Niw4NS4zOC00MjIuN2M1NC42OS0xMjkuMzEsMTMyLjk4LTI0NS40MywyMzIuNjctMzQ1LjEzLDk5LjY5LTk5LjY5LDIxNS44MS0xNzcuOTgsMzQ1LjEzLTIzMi42N0M3OTcuMSwyOC43Miw5MzkuMzIsMCwxMDg1Ljg3LDBjMjA5LjIzLDAsNDExLjMzLDU5LjI0LDU4NS45NywxNzEuNTNDMTg0Ni40OSw1OS4yNCwyMDQ4LjU4LDAsMjI1Ny44MSwwczQxMS4zMyw1OS4yNCw1ODUuOTcsMTcxLjUzQzMwMTguNDIsNTkuMjQsMzIyMC41MSwwLDM0MjkuNzUsMHM0MTEuMzMsNTkuMjQsNTg1Ljk3LDE3MS41M0M0MTkwLjM2LDU5LjI0LDQzOTIuNDYsMCw0NjAxLjcsMHM0MTEuMzMsNTkuMjQsNTg1Ljk3LDE3MS41M0M1MzYyLjMsNTkuMjQsNTU2NC40LDAsNTc3My42NCwwczQxMS4zMyw1OS4yNCw1ODUuOTYsMTcxLjUzQzY1MzQuMjQsNTkuMjQsNjczNi4zMywwLDY5NDUuNTgsMHM0MTEuMzMsNTkuMjQsNTg1Ljk2LDE3MS41M0M3NzA2LjE4LDU5LjI0LDc5MDguMjcsMCw4MTE3LjUxLDBzNDExLjMzLDU5LjI0LDU4NS45NywxNzEuNTNDODg3OC4xMiw1OS4yNCw5MDgwLjIxLDAsOTI4OS40NSwwYzE0Ni41NSwwLDI4OC43NywyOC43Miw0MjIuNyw4NS4zNywxMjkuMzEsNTQuNjksMjQ1LjQzLDEzMi45OCwzNDUuMTMsMjMyLjY3LDk5LjcsOTkuNywxNzcuOTgsMjE1LjgyLDIzMi42NywzNDUuMTMsNTYuNjUsMTMzLjk0LDg1LjM3LDI3Ni4xNSw4NS4zNyw0MjIuN3MtMjguNzIsMjg4Ljc2LTg1LjM3LDQyMi43Yy01NC42OSwxMjkuMzEtMTMyLjk4LDI0NS40My0yMzIuNjcsMzQ1LjEzLTk5LjcsOTkuNjktMjE1LjgxLDE3Ny45OC0zNDUuMTMsMjMyLjY3LTEzMy45Myw1Ni42NS0yNzYuMTUsODUuMzctNDIyLjcsODUuMzdaIi8+CiAgICAgICAgPGc+CiAgICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yODQzLjc4LDE4ODEuMWMtMTYzLjkyLDEyMC45OS0zNjYuNTksMTkyLjUxLTU4NS45NywxOTIuNTFzLTQyMi4wNC03MS41Mi01ODUuOTctMTkyLjVjMjQzLjctMTc5Ljg4LDQwMS43Ny00NjkuMSw0MDEuNzctNzk1LjIzcy0xNTguMDYtNjE1LjM2LTQwMS43Ny03OTUuMjRjMTYzLjkyLTEyMC45OCwzNjYuNTktMTkyLjUsNTg1Ljk3LTE5Mi41czQyMi4wNCw3MS41Miw1ODUuOTcsMTkyLjUxYy0yNDMuNywxNzkuODctNDAxLjc3LDQ2OS4wOS00MDEuNzcsNzk1LjIzczE1OC4wNiw2MTUuMzYsNDAxLjc3LDc5NS4yM1oiLz4KICAgICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTIwNzMuNjEsMTA4NS44N2MwLDMyNi4xMy0xNTguMDYsNjE1LjM2LTQwMS43Nyw3OTUuMjMtMjQzLjctMTc5Ljg3LTQwMS43Ny00NjkuMDktNDAxLjc3LTc5NS4yM3MxNTguMDctNjE1LjM2LDQwMS43Ny03OTUuMjRjMjQzLjcsMTc5Ljg4LDQwMS43Nyw0NjkuMSw0MDEuNzcsNzk1LjI0WiIvPgogICAgICAgICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMzI0NS41NSwxMDg1Ljg3YzAsMzI2LjEzLTE1OC4wNiw2MTUuMzYtNDAxLjc3LDc5NS4yMy0yNDMuNy0xNzkuODctNDAxLjc3LTQ2OS4wOS00MDEuNzctNzk1LjIzczE1OC4wNi02MTUuMzYsNDAxLjc3LTc5NS4yM2MyNDMuNzEsMTc5Ljg3LDQwMS43Nyw0NjkuMDksNDAxLjc3LDc5NS4yM1oiLz4KICAgICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMTYiIGQ9Ik0xNjcxLjg1LDE4ODEuMTFjLTE2My45MiwxMjAuOTgtMzY2LjYsMTkyLjUtNTg1Ljk3LDE5Mi41LTU0NS41MSwwLTk4Ny43NC00NDIuMjItOTg3Ljc0LTk4Ny43M1M1NDAuMzYsOTguMTMsMTA4NS44Nyw5OC4xM2MyMTkuMzgsMCw0MjIuMDUsNzEuNTIsNTg1Ljk3LDE5Mi41LTI0My43LDE3OS44OC00MDEuNzcsNDY5LjEtNDAxLjc3LDc5NS4yNHMxNTguMDcsNjE1LjM2LDQwMS43Nyw3OTUuMjNaIi8+CiAgICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTE1IiBkPSJNMjA3My42MSwxMDg1Ljg3YzAsMzI2LjEzLTE1OC4wNiw2MTUuMzYtNDAxLjc3LDc5NS4yMy0yNDMuNy0xNzkuODctNDAxLjc3LTQ2OS4wOS00MDEuNzctNzk1LjIzczE1OC4wNy02MTUuMzYsNDAxLjc3LTc5NS4yNGMyNDMuNywxNzkuODgsNDAxLjc3LDQ2OS4xLDQwMS43Nyw3OTUuMjRaIi8+CiAgICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTQiIGQ9Ik00MDE1LjcyLDE4ODEuMWMtMTYzLjkyLDEyMC45OS0zNjYuNTksMTkyLjUxLTU4NS45NywxOTIuNTFzLTQyMi4wNS03MS41Mi01ODUuOTctMTkyLjUxYzI0My43MS0xNzkuODcsNDAxLjc3LTQ2OS4wOSw0MDEuNzctNzk1LjIzcy0xNTguMDYtNjE1LjM2LTQwMS43Ny03OTUuMjNjMTYzLjkyLTEyMC45OSwzNjYuNi0xOTIuNTEsNTg1Ljk3LTE5Mi41MXM0MjIuMDQsNzEuNTIsNTg1Ljk3LDE5Mi41MWMtMjQzLjcsMTc5Ljg3LTQwMS43Nyw0NjkuMDktNDAxLjc3LDc5NS4yM3MxNTguMDYsNjE1LjM2LDQwMS43Nyw3OTUuMjNaIi8+CiAgICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTgiIGQ9Ik0zMjQ1LjU1LDEwODUuODdjMCwzMjYuMTMtMTU4LjA2LDYxNS4zNi00MDEuNzcsNzk1LjIzLTI0My43LTE3OS44Ny00MDEuNzctNDY5LjA5LTQwMS43Ny03OTUuMjNzMTU4LjA2LTYxNS4zNiw0MDEuNzctNzk1LjIzYzI0My43MSwxNzkuODcsNDAxLjc3LDQ2OS4wOSw0MDEuNzcsNzk1LjIzWiIvPgogICAgICAgICAgPHBhdGggY2xhc3M9ImNscy00IiBkPSJNNDQxNy40OSwxMDg1Ljg3YzAsMzI2LjEzLTE1OC4wNiw2MTUuMzYtNDAxLjc3LDc5NS4yMy0yNDMuNy0xNzkuODctNDAxLjc3LTQ2OS4wOS00MDEuNzctNzk1LjIzczE1OC4wNi02MTUuMzYsNDAxLjc3LTc5NS4yM2MyNDMuNywxNzkuODcsNDAxLjc3LDQ2OS4wOSw0MDEuNzcsNzk1LjIzWiIvPgogICAgICAgICAgPHBhdGggY2xhc3M9ImNscy02IiBkPSJNNTE4Ny42NiwxODgxLjFjLTE2My45MiwxMjAuOTktMzY2LjU5LDE5Mi41MS01ODUuOTcsMTkyLjUxcy00MjIuMDUtNzEuNTItNTg1Ljk3LTE5Mi41MWMyNDMuNy0xNzkuODcsNDAxLjc3LTQ2OS4wOSw0MDEuNzctNzk1LjIzcy0xNTguMDYtNjE1LjM2LTQwMS43Ny03OTUuMjNjMTYzLjkyLTEyMC45OSwzNjYuNi0xOTIuNTEsNTg1Ljk3LTE5Mi41MXM0MjIuMDQsNzEuNTIsNTg1Ljk3LDE5Mi41MWMtMjQzLjcsMTc5Ljg3LTQwMS43Nyw0NjkuMDktNDAxLjc3LDc5NS4yM3MxNTguMDYsNjE1LjM2LDQwMS43Nyw3OTUuMjNaIi8+CiAgICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTExIiBkPSJNNDQxNy40OSwxMDg1Ljg3YzAsMzI2LjEzLTE1OC4wNiw2MTUuMzYtNDAxLjc3LDc5NS4yMy0yNDMuNy0xNzkuODctNDAxLjc3LTQ2OS4wOS00MDEuNzctNzk1LjIzczE1OC4wNi02MTUuMzYsNDAxLjc3LTc5NS4yM2MyNDMuNywxNzkuODcsNDAxLjc3LDQ2OS4wOSw0MDEuNzcsNzk1LjIzWiIvPgogICAgICAgICAgPHBhdGggY2xhc3M9ImNscy02IiBkPSJNNTU4OS40MywxMDg1Ljg3YzAsMzI2LjEzLTE1OC4wNiw2MTUuMzYtNDAxLjc3LDc5NS4yMy0yNDMuNy0xNzkuODctNDAxLjc3LTQ2OS4wOS00MDEuNzctNzk1LjIzczE1OC4wNi02MTUuMzYsNDAxLjc3LTc5NS4yM2MyNDMuNywxNzkuODcsNDAxLjc3LDQ2OS4wOSw0MDEuNzcsNzk1LjIzWiIvPgogICAgICAgICAgPHBhdGggY2xhc3M9ImNscy0xMCIgZD0iTTYzNTkuNiwxODgxLjFjLTE2My45MiwxMjAuOTktMzY2LjU5LDE5Mi41MS01ODUuOTcsMTkyLjUxcy00MjIuMDUtNzEuNTItNTg1Ljk3LTE5Mi41MWMyNDMuNy0xNzkuODcsNDAxLjc3LTQ2OS4wOSw0MDEuNzctNzk1LjIzcy0xNTguMDYtNjE1LjM2LTQwMS43Ny03OTUuMjNjMTYzLjkyLTEyMC45OSwzNjYuNi0xOTIuNTEsNTg1Ljk3LTE5Mi41MXM0MjIuMDQsNzEuNTIsNTg1Ljk3LDE5Mi41MWMtMjQzLjcsMTc5Ljg3LTQwMS43Nyw0NjkuMDktNDAxLjc3LDc5NS4yM3MxNTguMDYsNjE1LjM2LDQwMS43Nyw3OTUuMjNaIi8+CiAgICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTkiIGQ9Ik01NTg5LjQzLDEwODUuODdjMCwzMjYuMTMtMTU4LjA2LDYxNS4zNi00MDEuNzcsNzk1LjIzLTI0My43LTE3OS44Ny00MDEuNzctNDY5LjA5LTQwMS43Ny03OTUuMjNzMTU4LjA2LTYxNS4zNiw0MDEuNzctNzk1LjIzYzI0My43LDE3OS44Nyw0MDEuNzcsNDY5LjA5LDQwMS43Nyw3OTUuMjNaIi8+CiAgICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTEwIiBkPSJNNjc2MS4zNywxMDg1Ljg3YzAsMzI2LjEzLTE1OC4wNiw2MTUuMzYtNDAxLjc3LDc5NS4yMy0yNDMuNy0xNzkuODctNDAxLjc3LTQ2OS4wOS00MDEuNzctNzk1LjIzczE1OC4wNi02MTUuMzYsNDAxLjc3LTc5NS4yM2MyNDMuNywxNzkuODcsNDAxLjc3LDQ2OS4wOSw0MDEuNzcsNzk1LjIzWiIvPgogICAgICAgICAgPHBhdGggY2xhc3M9ImNscy0xNCIgZD0iTTc1MzEuNTQsMTg4MS4xYy0xNjMuOTIsMTIwLjk5LTM2Ni41OSwxOTIuNTEtNTg1Ljk3LDE5Mi41MXMtNDIyLjA1LTcxLjUyLTU4NS45Ny0xOTIuNTFjMjQzLjctMTc5Ljg3LDQwMS43Ny00NjkuMDksNDAxLjc3LTc5NS4yM3MtMTU4LjA2LTYxNS4zNi00MDEuNzctNzk1LjIzYzE2My45Mi0xMjAuOTksMzY2LjYtMTkyLjUxLDU4NS45Ny0xOTIuNTFzNDIyLjA0LDcxLjUyLDU4NS45NywxOTIuNTFjLTI0My43LDE3OS44Ny00MDEuNzcsNDY5LjA5LTQwMS43Nyw3OTUuMjNzMTU4LjA2LDYxNS4zNiw0MDEuNzcsNzk1LjIzWiIvPgogICAgICAgICAgPHBhdGggY2xhc3M9ImNscy0xMyIgZD0iTTY3NjEuMzcsMTA4NS44N2MwLDMyNi4xMy0xNTguMDYsNjE1LjM2LTQwMS43Nyw3OTUuMjMtMjQzLjctMTc5Ljg3LTQwMS43Ny00NjkuMDktNDAxLjc3LTc5NS4yM3MxNTguMDYtNjE1LjM2LDQwMS43Ny03OTUuMjNjMjQzLjcsMTc5Ljg3LDQwMS43Nyw0NjkuMDksNDAxLjc3LDc5NS4yM1oiLz4KICAgICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMTQiIGQ9Ik03OTMzLjMxLDEwODUuODdjMCwzMjYuMTMtMTU4LjA2LDYxNS4zNi00MDEuNzcsNzk1LjIzLTI0My43LTE3OS44Ny00MDEuNzctNDY5LjA5LTQwMS43Ny03OTUuMjNzMTU4LjA2LTYxNS4zNiw0MDEuNzctNzk1LjIzYzI0My43LDE3OS44Nyw0MDEuNzcsNDY5LjA5LDQwMS43Nyw3OTUuMjNaIi8+CiAgICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTEyIiBkPSJNMTAyNzcuMTksMTA4NS44N2MwLDU0NS41MS00NDIuMjIsOTg3LjczLTk4Ny43NCw5ODcuNzMtMjE5LjM4LDAtNDIyLjA0LTcxLjUyLTU4NS45Ny0xOTIuNTEsMjQzLjctMTc5Ljg3LDQwMS43Ny00NjkuMDksNDAxLjc3LTc5NS4yM3MtMTU4LjA2LTYxNS4zNi00MDEuNzctNzk1LjIzYzE2My45Mi0xMjAuOTksMzY2LjU5LTE5Mi41MSw1ODUuOTctMTkyLjUxLDU0NS41MiwwLDk4Ny43NCw0NDIuMjIsOTg3Ljc0LDk4Ny43NFoiLz4KICAgICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMTIiIGQ9Ik05MTA1LjI1LDEwODUuODdjMCwzMjYuMTMtMTU4LjA2LDYxNS4zNi00MDEuNzcsNzk1LjIzLTI0My43LTE3OS44Ny00MDEuNzctNDY5LjA5LTQwMS43Ny03OTUuMjNzMTU4LjA2LTYxNS4zNiw0MDEuNzctNzk1LjIzYzI0My43LDE3OS44Nyw0MDEuNzcsNDY5LjA5LDQwMS43Nyw3OTUuMjNaIi8+CiAgICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTciIGQ9Ik04NzAzLjQ4LDE4ODEuMWMtMTYzLjkyLDEyMC45OS0zNjYuNiwxOTIuNTEtNTg1Ljk3LDE5Mi41MXMtNDIyLjA0LTcxLjUyLTU4NS45Ny0xOTIuNTFjMjQzLjctMTc5Ljg3LDQwMS43Ny00NjkuMDksNDAxLjc3LTc5NS4yM3MtMTU4LjA2LTYxNS4zNi00MDEuNzctNzk1LjIzYzE2My45Mi0xMjAuOTksMzY2LjU5LTE5Mi41MSw1ODUuOTctMTkyLjUxczQyMi4wNSw3MS41Miw1ODUuOTcsMTkyLjUxYy0yNDMuNywxNzkuODctNDAxLjc3LDQ2OS4wOS00MDEuNzcsNzk1LjIzczE1OC4wNiw2MTUuMzYsNDAxLjc3LDc5NS4yM1oiLz4KICAgICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtNSIgZD0iTTc5MzMuMzEsMTA4NS44N2MwLDMyNi4xMy0xNTguMDYsNjE1LjM2LTQwMS43Nyw3OTUuMjMtMjQzLjctMTc5Ljg3LTQwMS43Ny00NjkuMDktNDAxLjc3LTc5NS4yM3MxNTguMDYtNjE1LjM2LDQwMS43Ny03OTUuMjNjMjQzLjcsMTc5Ljg3LDQwMS43Nyw0NjkuMDksNDAxLjc3LDc5NS4yM1oiLz4KICAgICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTkxMDUuMjUsMTA4NS44N2MwLDMyNi4xMy0xNTguMDYsNjE1LjM2LTQwMS43Nyw3OTUuMjMtMjQzLjctMTc5Ljg3LTQwMS43Ny00NjkuMDktNDAxLjc3LTc5NS4yM3MxNTguMDYtNjE1LjM2LDQwMS43Ny03OTUuMjNjMjQzLjcsMTc5Ljg3LDQwMS43Nyw0NjkuMDksNDAxLjc3LDc5NS4yM1oiLz4KICAgICAgICA8L2c+CiAgICAgIDwvZz4KICAgICAgPGc+CiAgICAgICAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMTMyNi44LDkxNi4xOHY2MjIuOThoLTMwOS4xNnYtNjIyLjk4aC0yODMuMTl2LTI4My42aDg3NS41NXYyODMuNmgtMjgzLjE5WiIvPgogICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTE2NjEuOTIsMTUzOS4xNnYtOTA2LjU4aDgyNC4yMnYyODMuNmgtNTE1LjA2djUwLjQ4aDMwOS4xNnYyMzguNDNoLTMwOS4xNnY1MC40OGg1MTUuMDZ2MjgzLjZoLTgyNC4yMloiLz4KICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yOTc1Ljg1LDE1MzkuMTZjLTExNi43NSwwLTIxNy45OC00My4xNy0zMDMuNzItMTI5LjUxLTg5LjM3LTg5LTEzNC4wNS0xOTcuMDMtMTM0LjA1LTMyNC4xMXM0NC42OC0yMzQuMjIsMTM0LjA1LTMyNC4xMWM4Ni41NS04NS44OSwxODcuNzktMTI4Ljg1LDMwMy43Mi0xMjguODVoMzM1LjEydjI4My42aC0zMzUuMTJjLTQyLjY3LDAtNzkuOTEsMTYuNzktMTExLjcxLDUwLjM3LTMyLjIxLDM0LjA0LTQ4LjMxLDczLjgxLTQ4LjMxLDExOS4zMnMxNS45LDg1LjczLDQ3LjcsMTE5LjMxYzMxLjgsMzMuNTksNjkuMjMsNTAuMzgsMTEyLjMxLDUwLjM4aDMzNS4xMnYyODMuNmgtMzM1LjEyWiIvPgogICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTM5MjguNjgsMTUzOS4xNnYtMzM0LjA3aC0yNTcuMjN2MzM0LjA3aC0zMDkuMTZ2LTkwNi41OGgzMDkuMTZ2MzM0LjA3aDI1Ny4yM3YtMzM0LjA3aDMwOS4xNnY5MDYuNThoLTMwOS4xNloiLz4KICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik00ODU2LjE2LDE1MzkuMTZjLTMuMjMtOTcuODUtMjQuNzYtMTgzLjMxLTY0LjYxLTI1Ni4zNy00Ny41LTg5LTExMS43MS0xMzUuNzEtMTkyLjYyLTE0MC4xNHYzOTYuNWgtMzA5LjE2di05MDYuNThoMy42MmMxMTUuNTMsMCwyMjAuNzksMjEuOTIsMzE1LjgsNjUuNzUsMTA3LjA4LDQ5LjU5LDE4OS4zOSwxMjEuOTksMjQ2Ljk2LDIxNy4xOHYtMjgyLjkzaDMwOS4xNnY5MDYuNThoLTMwOS4xNloiLz4KICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik02MDkyLjgsMTA4NS41NGMwLDEyNy4wOC00NC42OCwyMzUuMTEtMTM0LjA1LDMyNC4xMS04NS43NCw4Ni4zNC0xODYuOTksMTI5LjUxLTMwMy43MiwxMjkuNTFzLTIxNy45OC00My4xNy0zMDMuNzItMTI5LjUxYy04OS4zNy04OS0xMzQuMDUtMTk3LjAzLTEzNC4wNS0zMjQuMTFzNDQuNjgtMjM0LjIyLDEzNC4wNS0zMjQuMTFjODYuNTQtODUuODksMTg3Ljc5LTEyOC44NSwzMDMuNzItMTI4Ljg1czIxNy4xNyw0Mi45NSwzMDMuNzIsMTI4Ljg1Yzg5LjM3LDg5Ljg5LDEzNC4wNSwxOTcuOTIsMTM0LjA1LDMyNC4xMVpNNTgxNS4wNCwxMDg1Ljg3YzAtNDUuNTItMTYuMy04NS4yOC00OC45MS0xMTkuMzItMzEuODEtMzMuNTgtNjguODQtNTAuMzctMTExLjEtNTAuMzdzLTgwLjUyLDE2Ljc5LTExMi4zMSw1MC4zN2MtMzEuOCwzMy41OS00Ny43LDczLjM3LTQ3LjcsMTE5LjMyczE1LjksODUuNzMsNDcuNywxMTkuMzFjMzEuOCwzMy41OSw2OS4yMyw1MC4zOCwxMTIuMzEsNTAuMzhzNzkuOS0xNi43OSwxMTEuNzEtNTAuMzhjMzIuMi0zNC4wMiw0OC4zMS03My43OSw0OC4zMS0xMTkuMzFaIi8+CiAgICAgICAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNjcwNS4wNyw5MTYuMTh2NjIyLjk4aC0zMDkuMTZ2LTYyMi45OGgtMjgzLjE5di0yODMuNmg4NzUuNTV2MjgzLjZoLTI4My4xOVoiLz4KICAgICAgICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik03NTE4LjQzLDE1MzkuMTZsLTI3LjE3LTExMy41N2gtMjM0Ljg5bC0yNi41NywxMTMuNTdoLTMxOS40MmwyMTYuMTctOTA2LjU4aDQ5NC41M2wyMTYuNzcsOTA2LjU4aC0zMTkuNDJaTTczNzQuMTIsOTM0Ljc3bC02Mi44LDI2NC4zNGgxMjUuNmwtNjIuOC0yNjQuMzRaIi8+CiAgICAgICAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNODM4NS41Miw5MTYuMThjLTEzLjY5LDAtMjAuNTMsOC44NS0yMC41MywyNi41NCwwLDQuNDMsMSw3LjMxLDMuMDIsOC42MmwxNDkuNzUsMTIzLjQxYzYxLjU5LDUxLjMxLDkyLjM4LDEyMC4wOSw5Mi4zOCwyMDYuMzQsMCw3MS42NS0yNi41NywxMzIuNjktNzkuNywxODMuMTEtNTMuOTUsNDkuOTgtMTEzLjUyLDc0Ljk3LTE3OC43Myw3NC45N2gtNDYyLjUzdi0yODMuNmgzMDYuMTRjMTMuNjgsMCwyMC41My05LjA3LDIwLjUzLTI3LjIzLDAtMy4wOS0xLjAxLTUuNzUtMy4wMi03Ljk3bC0xMzkuNDgtMTEyLjI0Yy01NC4zNC00My44My04MS41Mi0xMTAuNjktODEuNTItMjAwLjU4LDAtNzMuOTQsMjYuMTYtMTM4LjE1LDc4LjUtMTkyLjYxLDUyLjMzLTU0LjksMTEyLjEtODIuMzYsMTc5LjM0LTgyLjM2aDQ2My43NHYyODMuNmgtMzI3Ljg4WiIvPgogICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTk0MjQuNzEsMTUzOS4xNmMtNjkuMjQsMC0xMzcuODgtMzcuODYtMjA1LjktMTEzLjU3bC0xNDQuMzEtMTU4Ljc0djI3Mi4zMWgtMzA5LjE2di05MDYuNThoMzA5LjE2djI5Ni44OGwxODkuNi0yOTYuODhoMzc2Ljc5bC0zMDAuNyw0NzMuNTUsMTIzLjc4LDEzNi4xNWM4LjA1LDguODYsMjQuNzYsMTMuMjgsNTAuMTIsMTMuMjhoMTI2Ljh2MjgzLjZoLTIxNi4xN1oiLz4KICAgICAgPC9nPgogICAgPC9nPgogIDwvZz4KPC9zdmc+" alt="Technotask"></div>
+
+  <h1>You did the Human part.<br><span class="gold">Now let AI do the rest.</span></h1>
+  <p class="tag">Meet <b>Xeny</b>, Technotask's AI Voice Agent</p>
+
+  <div class="stage" id="stage">
+    <div class="aura" aria-hidden="true"></div>
+    <canvas class="ringwave" id="ringwave" aria-hidden="true"></canvas>
+    <div class="orb" id="orb">
+      <div class="swirl" aria-hidden="true"><i></i><i></i><i></i></div>
+      <button class="orb-btn" id="startBtn" type="button" aria-label="Start Conversation">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        <span id="startLabel"><b>Tap to start</b><small>conversation</small></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="end" id="endBtn" type="button" hidden>End Conversation</button>
+    <p class="status" id="status" role="status" aria-live="polite">Tap the glowing button to talk to Xeny. Allow microphone access when asked.</p>
+    <button class="claim-open" id="claimOpen" type="button" aria-haspopup="dialog" aria-controls="claim">Claim your free credits</button>
+  </div>
+
+  <div class="langs" aria-label="Some of the languages Xeny speaks"><span>English</span><span>हिन्दी</span><span>العربية</span><span>தமிழ்</span><span>Français</span><span>+ more</span></div>
+
+  <footer>Happy Diwali! 🪔</footer>
+</main>
+
+<aside class="claim" id="claim" aria-label="Claim your free credits">
+  <div class="claim-card" role="dialog" aria-labelledby="claimTitle">
+    <button class="claim-close" id="claimClose" type="button" aria-label="Close">&times;</button>
+    <form id="claimForm" novalidate autocomplete="on">
+      <h2 id="claimTitle">Claim Your Free Credits</h2>
+      <p class="sub">Talk to Xeny, or fill in the short form.</p>
+
+      <label for="cf-name">Name</label>
+      <input id="cf-name" name="name" type="text" autocomplete="name" required>
+
+      <label for="cf-company">Company</label>
+      <input id="cf-company" name="company" type="text" autocomplete="organization" required>
+
+      <label for="cf-email">Work Email</label>
+      <input id="cf-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" required>
+
+      <label for="cf-mobile">Mobile Number</label>
+      <input id="cf-mobile" name="mobile" type="tel" inputmode="tel" autocomplete="tel" required>
+
+      <div class="hp" aria-hidden="true"><label>Leave empty <input name="bot-field" type="text" tabindex="-1" autocomplete="off"></label></div>
+
+      <button class="claim-submit" id="claimSubmit" type="submit">Claim My Free Credits</button>
+      <div class="claim-err" id="claimErr" role="alert"></div>
+      <p class="claim-note">Our team will get in touch to help you activate your free credits.</p>
+    </form>
+    <div class="claim-thanks" id="claimThanks" role="status">
+      <h3>Thank you!</h3>
+      <p>The Technotask team will connect with you to activate your free AI Voice credits. Happy Diwali!</p>
+    </div>
+  </div>
+</aside>
+
+<script>
+  // Firecrackers: rockets launch from the left and right edges so the bursts stay clear of the orb.
+  (() => {
+    const canvas = document.getElementById("fireworks");
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { canvas.hidden = true; return; }
+    const ctx = canvas.getContext("2d");
+    const colors = ["#ffd34d", "#ff7a18", "#ff4f7b", "#fff1cf", "#ffb347", "#7cf5c4", "#c39bff"];
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const pick = (list) => list[Math.floor(Math.random() * list.length)];
+    const rockets = [], sparks = [];
+    let w = 0, h = 0, scale = 1, last = 0, nextLaunch = 0;
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = innerWidth; h = innerHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      scale = Math.max(.6, Math.min(1.3, Math.min(w, h) / 700));
+    }
+
+    function launch() {
+      const x = w * (Math.random() < .5 ? rand(.04, .28) : rand(.72, .96));
+      rockets.push({ x, y: h + 10, tx: x + rand(-40, 40) * scale, ty: h * rand(.1, .42), color: pick(colors) });
+    }
+
+    function burst(r) {
+      const count = Math.round(rand(46, 72));
+      const second = Math.random() < .4 ? pick(colors) : r.color;
+      const crackle = Math.random() < .35;
+      for (let i = 0; i < count; i++) {
+        const a = (i / count) * Math.PI * 2 + rand(-.08, .08);
+        const s = rand(1.6, 4.2) * scale;
+        sparks.push({ x: r.x, y: r.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+          life: 1, decay: rand(.011, .019), color: i % 2 ? second : r.color, crackle });
+      }
+    }
+
+    function frame(t) {
+      const dt = Math.min((t - last) / 16.67 || 1, 3);
+      last = t;
+      if (t > nextLaunch) {
+        launch();
+        if (Math.random() < .25) launch();
+        nextLaunch = t + rand(700, 1600);
+      }
+
+      // fade the previous frame into trails while keeping the canvas transparent
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.fillStyle = `rgba(0,0,0,${Math.min(.28 * dt, 1)})`;
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalCompositeOperation = "lighter";
+      ctx.lineCap = "round";
+
+      for (let i = rockets.length - 1; i >= 0; i--) {
+        const r = rockets[i], px = r.x, py = r.y;
+        r.x += (r.tx - r.x) * .045 * dt;
+        r.y += (r.ty - r.y) * .045 * dt;
+        ctx.globalAlpha = 1; ctx.strokeStyle = r.color; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(r.x, r.y); ctx.stroke();
+        if (r.y - r.ty < 8) { burst(r); rockets.splice(i, 1); }
+      }
+
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const s = sparks[i], px = s.x, py = s.y, drag = Math.pow(.97, dt);
+        s.vx *= drag;
+        s.vy = s.vy * drag + .045 * dt;
+        s.x += s.vx * dt; s.y += s.vy * dt;
+        s.life -= s.decay * dt;
+        if (s.life <= 0) { sparks.splice(i, 1); continue; }
+        ctx.globalAlpha = s.crackle && s.life < .5 ? Math.random() * s.life * 2 : s.life;
+        ctx.strokeStyle = s.color; ctx.lineWidth = 1.8;
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(s.x, s.y); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(frame);
+    }
+
+    resize();
+    addEventListener("resize", resize);
+    requestAnimationFrame(frame);
+  })();
+</script>
+
+<script>
+  // Ring around the sphere: a thin white circle with a beaded sound wave that travels round it.
+  // While connected the wave follows the live voice level (Xeny's when speaking, the visitor's when listening).
+  (() => {
+    const stage = document.getElementById("stage");
+    const canvas = document.getElementById("ringwave");
+    const ctx = canvas.getContext("2d");
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let size = 0, level = 0, angle = -Math.PI / 5;
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      size = stage.clientWidth;
+      canvas.width = canvas.height = size * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function frame(t) {
+      const speaking = stage.classList.contains("speaking");
+      const live = speaking || stage.classList.contains("listening");
+      const target = live && window.xenyLevel ? Math.min(1, window.xenyLevel() * 2.2) : 0;
+      level += (target - level) * .2;
+      if (!still) angle += speaking ? .012 : .005;
+
+      const c = size / 2, R = size * .44, amp = size * (.014 + .06 * level);
+      ctx.clearRect(0, 0, size, size);
+      ctx.lineWidth = 1.4; ctx.strokeStyle = "rgba(255,255,255,.85)";
+      ctx.beginPath(); ctx.arc(c, c, R, 0, Math.PI * 2); ctx.stroke();
+
+      const n = 34, spread = Math.PI * .42;
+      ctx.fillStyle = "#fff"; ctx.shadowColor = "rgba(255,200,90,.95)"; ctx.shadowBlur = 6;
+      for (let i = 0; i < n; i++) {
+        const u = i / (n - 1);
+        const env = Math.sin(Math.PI * u);   // beads lift off the ring in the middle and rejoin it at the ends
+        const wave = still ? 1 : .55 + .45 * Math.sin(u * 14 - t / 180);
+        const a = angle + (u - .5) * spread, r = R + env * amp * wave;
+        ctx.globalAlpha = .25 + .75 * env;
+        ctx.beginPath(); ctx.arc(c + Math.cos(a) * r, c + Math.sin(a) * r, 1 + env * 1.4, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // soft glowing bead where the wave rejoins the ring
+      const ta = angle + spread / 2, tx = c + Math.cos(ta) * R, ty = c + Math.sin(ta) * R;
+      const glow = ctx.createRadialGradient(tx, ty, 0, tx, ty, size * .05);
+      glow.addColorStop(0, "rgba(255,255,255,.9)"); glow.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.globalAlpha = 1; ctx.shadowBlur = 0; ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(tx, ty, size * .05, 0, Math.PI * 2); ctx.fill();
+      requestAnimationFrame(frame);
+    }
+
+    new ResizeObserver(resize).observe(stage);
+    requestAnimationFrame(frame);
+  })();
+</script>
+
+<script>
+  // Every submission is added as a new row in the Google Sheet (via the Apps Script web app URL below).
+  const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbx4A1SDyWHNjEmKYzHj2uDhKKtLBuqDtaSVEW6lz-8gg6Vd9PsAmjAaUucSt6eAC-gA/exec";
+
+  (() => {
+    const panel = document.getElementById("claim");
+    const openBtn = document.getElementById("claimOpen");
+    const closeBtn = document.getElementById("claimClose");
+    const form = document.getElementById("claimForm");
+    const thanks = document.getElementById("claimThanks");
+    const err = document.getElementById("claimErr");
+    const submit = document.getElementById("claimSubmit");
+    let lastFocus = null;
+
+    const isSheet = () => matchMedia("(max-width: 999px)").matches;
+
+    // Laptop: centre the card on the talk button, keeping it clear of the lights and inside the screen.
+    function align() {
+      if (isSheet()) { panel.style.top = ""; panel.style.transform = ""; return; }
+      const st = document.getElementById("stage").getBoundingClientRect();
+      const h = panel.firstElementChild.getBoundingClientRect().height;
+      const top = Math.min(Math.max(st.top + st.height / 2 - h / 2, 132), Math.max(132, innerHeight - h - 18));
+      panel.style.transform = "none";
+      panel.style.top = top + "px";
+    }
+    addEventListener("resize", align);
+    addEventListener("load", () => { align(); setTimeout(align, 500); setTimeout(align, 1500); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(align);
+    align();
+    function openPanel() { lastFocus = document.activeElement; panel.classList.add("open"); setTimeout(() => form.querySelector("input")?.focus(), 50); }
+    function closePanel() { panel.classList.remove("open"); lastFocus && lastFocus.focus && lastFocus.focus(); }
+    openBtn.addEventListener("click", openPanel);
+    closeBtn.addEventListener("click", closePanel);
+    panel.addEventListener("click", (e) => { if (e.target === panel && isSheet()) closePanel(); });
+    addEventListener("keydown", (e) => { if (e.key === "Escape" && panel.classList.contains("open") && isSheet()) closePanel(); });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      err.style.display = "none";
+      const data = Object.fromEntries(new FormData(form).entries());
+      if (data["bot-field"]) { form.style.display = "none"; thanks.style.display = "block"; return; }   // spam trap
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((data.email || "").trim());
+      const mobileOk = (data.mobile || "").replace(/\D/g, "").length >= 7;
+      if (!(data.name || "").trim() || !(data.company || "").trim() || !emailOk || !mobileOk) {
+        err.textContent = "Please fill in all fields with a valid email and mobile number.";
+        err.style.display = "block";
+        return;
+      }
+      const payload = { name: data.name, company: data.company, email: data.email, mobile: data.mobile,
+                        source: "xeny-diwali-qr", submittedAt: new Date().toISOString() };
+      submit.disabled = true;
+      try {
+        await fetch(FORM_ENDPOINT, {
+          method: "POST", mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        form.style.display = "none";
+        thanks.style.display = "block";
+      } catch (_) {
+        err.textContent = "Something went wrong. Please try again in a moment.";
+        err.style.display = "block";
+        submit.disabled = false;
+      }
+    });
+  })();
+</script>
+
+<script type="module">
+  import { Conversation } from "https://cdn.jsdelivr.net/npm/@elevenlabs/client/+esm";
+
+  const AGENT_ID = "agent_7001m60f8vr1ed6903ed6fgkf18b";
+
+  const startBtn = document.getElementById("startBtn");
+  const startLabel = document.getElementById("startLabel");
+  const endBtn = document.getElementById("endBtn");
+  const statusEl = document.getElementById("status");
+  const orb = document.getElementById("orb");
+  const stage = document.getElementById("stage");
+  let conversation = null;
+  let starting = false;
+
+  // iPhone/iPad Safari only plays audio when the call starts straight from a tap, so there we skip the
+  // pre-check and the automatic start. Everything else behaves as before.
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const inApp = /FBAN|FBAV|Instagram|Line\/|MicroMessenger|WhatsApp|Snapchat|; wv\)|GSA\//i.test(navigator.userAgent);
+  const isPermErr = (e) => e && (e.name === "NotAllowedError" || /permission|denied|not allowed/i.test(String(e.message || e)));
+  const permMsg = () => inApp
+    ? "This in-app browser blocks the microphone. Please open this page in Safari or Chrome."
+    : "Microphone is blocked. Allow it for this site in your browser settings (iPhone: Settings, Safari, Microphone), then tap again.";
+
+  // Live voice level (0 to 1) for the ring wave around the sphere.
+  window.xenyLevel = () => {
+    if (!conversation) return 0;
+    try { return stage.classList.contains("speaking") ? conversation.getOutputVolume() : conversation.getInputVolume(); }
+    catch (_) { return 0; }
+  };
+
+  const setStatus = (t) => { statusEl.textContent = t; };
+  const setMode = (mode) => {
+    orb.className = "orb" + (mode ? " " + mode : "");
+    stage.className = "stage" + (mode ? " " + mode : "");
+  };
+
+  function resetUI(message) {
+    conversation = null;
+    starting = false;
+    startBtn.hidden = false;
+    startBtn.disabled = false;
+    startLabel.innerHTML = "<b>Tap to start</b><small>conversation</small>";
+    endBtn.hidden = true;
+    setMode("");
+    setStatus(message || "Tap the glowing button to talk to Xeny. Allow microphone access when asked.");
+  }
+
+  async function begin(auto) {
+    if (starting || conversation) return;
+    if (auto === true && isIOS) return;
+    starting = true;
+    startBtn.disabled = true;
+    startLabel.textContent = "Connecting...";
+    setStatus("Connecting to Xeny...");
+
+    if (location.protocol === "file:") {
+      resetUI("Open this page from its https:// link. Microphone access does not work when the file is opened from your computer.");
+      return;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      resetUI("This browser or page cannot use the microphone. Please open the page over https:// in Chrome or Safari.");
+      return;
+    }
+
+    if (!isIOS) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((t) => t.stop());
+      } catch (e) {
+        console.error("Microphone error:", e);
+        resetUI("Microphone access is needed to talk to Xeny. Please allow it in your browser and tap again.");
+        return;
+      }
+    }
+
+    const callbacks = {
+      onConnect: () => {
+        startBtn.hidden = true;
+        endBtn.hidden = false;
+        setMode("listening");
+        setStatus("Connected. Go ahead and speak, in any language.");
+      },
+      onDisconnect: () => resetUI("Conversation ended. Thank you, and Happy Diwali!"),
+      onModeChange: ({ mode }) => {
+        setMode(mode === "speaking" ? "speaking" : "listening");
+        setStatus(mode === "speaking" ? "Xeny is speaking..." : "Listening...");
+      },
+      onError: (m) => {
+        console.error("Conversation error:", m);
+        resetUI("Something went wrong: " + (typeof m === "string" ? m : (m && m.message) || "connection error") + ". Tap to try again.");
+      }
+    };
+
+    try {
+      conversation = await Conversation.startSession({ agentId: AGENT_ID, connectionType: "webrtc", ...callbacks });
+    } catch (e1) {
+      console.error("WebRTC start failed, trying websocket:", e1);
+      if (isPermErr(e1)) { resetUI(permMsg()); return; }
+      try {
+        conversation = await Conversation.startSession({ agentId: AGENT_ID, connectionType: "websocket", ...callbacks });
+      } catch (e2) {
+        console.error("Websocket start failed:", e2);
+        if (isPermErr(e2)) { resetUI(permMsg()); return; }
+        resetUI("Couldn't connect to Xeny: " + ((e2 && e2.message) || e2) + ". Tap to try again.");
+      }
+    }
+  }
+
+  startBtn.addEventListener("click", () => begin(false));
+
+  endBtn.addEventListener("click", async () => {
+    try { if (conversation) await conversation.endSession(); } catch (_) {}
+    resetUI("Conversation ended. Thank you, and Happy Diwali!");
+  });
+
+  // Try to start automatically. If the browser blocks it, the Start button works as a fallback.
+  window.addEventListener("load", () => setTimeout(() => begin(true), 400));
+</script>
+</body>
+</html>
